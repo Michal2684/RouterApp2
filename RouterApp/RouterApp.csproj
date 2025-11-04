@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWindowsForms>true</UseWindowsForms>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MermaidDotNet" Version="0.7.24" />
+      <PackageReference Include="PacketDotNet" Version="1.4.9-pre46" />
+      <PackageReference Include="SharpPcap" Version="6.3.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="UI\Form1.cs">
+        <SubType>Form</SubType>
+      </Compile>
+    </ItemGroup>
+
+</Project>
