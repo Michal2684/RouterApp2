@@ -83,63 +83,53 @@ namespace RouterApp.Core
 
             var eth = Packet.ParsePacket(LinkLayers.Ethernet, raw.Data) as EthernetPacket;
             if (eth == null) return;
-
-            // --- ARP ---
+            
             if (eth.Type == EthernetType.Arp)
             {
                 HandleArp(inPort, eth);
                 return;
             }
-
-            // --- IPv4 (routing + RIP) ---
+            
             if (eth.Type == EthernetType.IPv4)
             {
                 var ip = eth.Extract<IPv4Packet>();
                 if (ip == null) return;
-
-                // 0) Ak je cieľom jedna z IP nášho routera, neroutujeme (control-plane pakety tu nespracúvame)
+                
                 foreach (var kv in _ports)
                 {
                     var ifc = kv.Value;
                     if (ifc?.Ip != null && ip.DestinationAddress.Equals(ifc.Ip))
-                        return; // packet pre router – v tejto app ho neobsluhujeme
+                        return; 
                 }
-
-                // 1) RIP – ak je to UDP/520, odovzdaj RIP procesu a skonči
+                
                 var udp = ip.Extract<UdpPacket>();
                 if (udp != null && (udp.SourcePort == 520 || udp.DestinationPort == 520))
                 {
                     Rip.OnRipMessage(inPort, ip, udp);
                     return;
                 }
-
-                // 2) TTL check/decrement
-                if (ip.TimeToLive <= 1) return; // drop (TTL expired)
+                
+                if (ip.TimeToLive <= 1) return; 
                 ip.TimeToLive -= 1;
                 ip.UpdateIPChecksum();
-
-                // 3) LPM + rekurzívne rozlíšenie next-hopu (požiadavka z pokynov)
+                
                 var resolved = Rt.ResolveNextHop(ip.DestinationAddress);
-                if (resolved == null) return; // bez trasy
+                if (resolved == null) return; 
                 var (outPort, nextHop) = resolved.Value;
 
                 var outDev = _ports[outPort]?.Device;
                 if (outDev == null || !outDev.Opened) return;
-
-                // 4) ARP na next-hop (pri direct route je nextHop = cieľ)
+                
                 if (!Arp.TryGet(nextHop, out var arpE))
                 {
-                    // spusti ARP a tento paket dropni (ďalšie už prejdú)
                     EnsureArpFor(outPort, nextHop);
                     return;
                 }
-
-                // 5) Prepočítaj transportné checksumy (ak sú)
+                
                 var tcp = ip.Extract<TcpPacket>();
                 if (udp != null) udp.UpdateUdpChecksum();
                 if (tcp != null) tcp.UpdateTcpChecksum();
-
-                // 6) Postav L2 rámec a odošli
+                
                 var outEth = new EthernetPacket(outDev.MacAddress, arpE.Mac, EthernetType.IPv4)
                 {
                     PayloadPacket = ip
@@ -258,10 +248,14 @@ namespace RouterApp.Core
 
             var network = IpUtils.GetNetworkAddress(ip, mask);
             var broadcast = IpUtils.GetBroadcastAddress(network, mask);
-            if (ip.Equals(network) || ip.Equals(broadcast))
+            
+            if (!mask.Equals(IPAddress.Parse("255.255.255.255")))
             {
-                error = "IP cannot be the network or broadcast address for that mask.";
-                return false;
+                if (ip.Equals(network) || ip.Equals(broadcast))
+                {
+                    error = "IP cannot be the network or broadcast address for that mask.";
+                    return false;
+                }
             }
 
             var otherPort = port == 1 ? 2 : 1;
@@ -286,15 +280,13 @@ namespace RouterApp.Core
 
         public void RipUpsertWithBestPath(RouteEntry incoming, TimeSpan holdDown)
         {
-            // neprepisuj connected prefixy cez RIP
             foreach (var r in Rt.Snapshot())
             {
                 if (r.LearnedVia == RouteLearnedVia.Connected &&
                     r.Prefix.Equals(incoming.Prefix) && r.Mask.Equals(incoming.Mask))
                     return;
             }
-
-            // ak existuje od toho istého suseda → prepíš
+            
             var existing = Rt.Snapshot().FirstOrDefault(r =>
                 r.LearnedVia == RouteLearnedVia.RIP &&
                 r.Prefix.Equals(incoming.Prefix) &&
@@ -305,13 +297,12 @@ namespace RouterApp.Core
                 Rt.Upsert(incoming);
                 return;
             }
-
-            // Holddown rešpektuj: ak existuje a sme v hold-downe, ignoruj "zlepšenia"
+            
             if (existing.HoldDownUntilUtc != null &&
                 DateTime.UtcNow < existing.HoldDownUntilUtc.Value &&
                 incoming.Metric < existing.Metric)
             {
-                return; // potlač "lepšie" info počas hold-down
+                return; 
             }
 
             bool sameNeighbor = existing.LearnedFromIp != null &&
@@ -325,8 +316,7 @@ namespace RouterApp.Core
                 Rt.Upsert(incoming);
                 return;
             }
-
-            // inak ponechaj "lepší" záznam
+            
             bool better = incoming.Metric < existing.Metric;
             if (better) Rt.Upsert(incoming);
         }
@@ -384,44 +374,52 @@ namespace RouterApp.Core
             if (eth.PayloadPacket is not ArpPacket arp) return;
 
             var ifIn = _ports[inPort];
-            var ifOut = _ports[inPort == 1 ? 2 : 1];
 
             if (arp.Operation == ArpOperation.Response)
             {
-                Arp.Learn(arp.SenderProtocolAddress, arp.SenderHardwareAddress, inPort);
+                if (arp.SenderProtocolAddress != null && arp.SenderHardwareAddress != null)
+                    Arp.Learn(arp.SenderProtocolAddress, arp.SenderHardwareAddress, inPort);
                 return;
             }
 
-            if (arp.Operation == ArpOperation.Request)
+            if (arp.Operation != ArpOperation.Request) return;
+
+            var spa = arp.SenderProtocolAddress;   
+            var sha = arp.SenderHardwareAddress;
+            var tpa = arp.TargetProtocolAddress;   
+            
+            if (tpa.Equals(IPAddress.Broadcast)) return;
+            var b0 = tpa.GetAddressBytes()[0];
+            if (b0 >= 224 && b0 <= 239) return;    
+
+            if (ifIn?.Device == null || ifIn.Ip == null || ifIn.Mask == null)
+                return; 
+            
+            if (tpa.Equals(ifIn.Ip))
             {
-                var tpa = arp.TargetProtocolAddress;
-
-                // 1) Sme cieľ? (respond as interface)
-                if (ifIn?.Ip != null && tpa.Equals(ifIn.Ip))
+                var reply = BuildArpReply(ifIn.Device.MacAddress, ifIn.Ip, sha, spa);
+                try { ifIn.Device.SendPacket(reply.Bytes); } catch { }
+                return;
+            }
+            
+            if (ProxyArpEnabled)
+            {
+                var resolved = Rt.ResolveNextHop(tpa);
+                if (resolved != null)
                 {
-                    var reply = BuildArpReply(ifIn.Device.MacAddress, ifIn.Ip,
-                                              arp.SenderHardwareAddress, arp.SenderProtocolAddress);
-                    try { ifIn.Device.SendPacket(reply.Bytes); } catch { }
-                    return;
-                }
-
-                // 2) Proxy ARP – pozri routing (zjednodušené: cez druhý port)
-                if (ProxyArpEnabled && ifIn?.Ip != null && ifOut?.Ip != null)
-                {
-                    bool targetOnOtherSubnet = IpUtils.IsInSameSubnet(tpa, ifOut.Ip, ifOut.Mask);
-
-                    if (targetOnOtherSubnet && !IpUtils.IsInSameSubnet(tpa, ifIn.Ip, ifIn.Mask))
+                    var (outPort, _) = resolved.Value;
+                    
+                    if (outPort != inPort)
                     {
-                        var reply = BuildArpReply(ifIn.Device.MacAddress, tpa,
-                                                  arp.SenderHardwareAddress, arp.SenderProtocolAddress);
+                        var reply = BuildArpReply(ifIn.Device.MacAddress, tpa, sha, spa);
                         try { ifIn.Device.SendPacket(reply.Bytes); } catch { }
                         return;
                     }
                 }
             }
+            
         }
-
-        // ===== Views / helpers for UI =====
+        
 
         public IReadOnlyList<(string Ip, string Mac, string Age, int Port)> GetArpView()
         {

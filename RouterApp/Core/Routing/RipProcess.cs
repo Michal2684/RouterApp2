@@ -14,8 +14,7 @@ namespace RouterApp.Core.Routing
         private readonly CustomeRouter _router;
         private readonly System.Timers.Timer _tick = new(1000);
         private readonly Dictionary<int, DateTime> _nextUpdateAt = new();
-
-        // Konfigurovateľné časovače (GUI si vie bindnúť na tieto property)
+        
         public TimeSpan UpdateTimer  { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan InvalidTimer { get; set; } = TimeSpan.FromSeconds(180);
         public TimeSpan HoldDownTimer{ get; set; } = TimeSpan.FromSeconds(180);
@@ -56,11 +55,16 @@ namespace RouterApp.Core.Routing
 
         public void OnRipMessage(int inPort, IPv4Packet ip, UdpPacket udp)
         {
+            var ifc = _router.GetPort(inPort);
+            if (ifc?.Ip == null) return;
+            
+            if ((inPort == 1 && !Port1Enabled) || (inPort == 2 && !Port2Enabled))
+                return;
+            
             if (udp.PayloadData == null || udp.PayloadData.Length < 4) return;
             byte cmd = udp.PayloadData[0], ver = udp.PayloadData[1];
-            if (ver != 2 || cmd != 2) return; // spracúvame Response
-
-            // 4-byte header, potom RTE 20B
+            if (ver != 2 || cmd != 2) return; 
+            
             var p = udp.PayloadData;
             for (int i = 4; i + 20 <= p.Length; i += 20)
             {
@@ -79,7 +83,7 @@ namespace RouterApp.Core.Routing
                 {
                     Prefix = network,
                     Mask = mask,
-                    NextHop = ip.SourceAddress,         // sused
+                    NextHop = ip.SourceAddress,         
                     OutPort = inPort,
                     Metric = newMetric,
                     AdminDistance = 120,
@@ -90,6 +94,17 @@ namespace RouterApp.Core.Routing
                     HoldDownUntilUtc = null,
                     FlushDueUtc = null
                 };
+                
+                if (newMetric >= 16)
+                {
+
+                    entry.InvalidSinceUtc = entry.InvalidSinceUtc ?? DateTime.UtcNow;
+                    entry.HoldDownUntilUtc = DateTime.UtcNow.Add(HoldDownTimer);
+                    entry.FlushDueUtc      = DateTime.UtcNow.Add(FlushTimer);
+                    
+                    _router.Rt.Upsert(entry);
+                    return;
+                }
 
                 _router.RipUpsertWithBestPath(entry, HoldDownTimer);
             }
@@ -99,12 +114,10 @@ namespace RouterApp.Core.Routing
         {
             var ifc = _router.GetPort(outPort);
             if (ifc?.Device == null || ifc.Ip == null) return;
-
-            // RIP header: Command=1 (Request), Version=2
+            
             var bytes = new List<byte> { 0x01, 0x02, 0x00, 0x00 };
-
-            // RTE: AFI=0, metric=16 => žiadosť o celú tabuľku
-            var rte = new byte[20]; // všetko nuly
+            
+            var rte = new byte[20]; 
             var metric16 = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(16));
             rte[16] = metric16[0]; rte[17] = metric16[1]; rte[18] = metric16[2]; rte[19] = metric16[3];
             bytes.AddRange(rte);
@@ -118,30 +131,22 @@ namespace RouterApp.Core.Routing
             if (ifc?.Device == null || ifc.Ip == null) return;
 
             var routes = _router.Rt.Snapshot();
-
-            // Command=2, Version=2
+            
             var bytes = new List<byte> { 0x02, 0x02, 0x00, 0x00 };
 
             foreach (var r in routes)
             {
-                if (r.LearnedVia == RouteLearnedVia.Static) continue; // stačí connected + RIP
+                if (r.LearnedVia == RouteLearnedVia.Static) continue; 
 
                 int metricToSend = r.Metric;
-                // split-horizon with poison reverse
                 if (r.LearnedVia == RouteLearnedVia.RIP && r.OutPort == outPort)
                     metricToSend = 16;
-
-                // AFI = 2 (IPv4)
+                
                 bytes.Add(0x00); bytes.Add(0x02);
-                // RouteTag = 0
                 bytes.Add(0x00); bytes.Add(0x00);
-                // Prefix
                 bytes.AddRange(r.Prefix.GetAddressBytes());
-                // Mask
                 bytes.AddRange(r.Mask.GetAddressBytes());
-                // NextHop = 0
                 bytes.AddRange(new byte[] { 0, 0, 0, 0 });
-                // Metric (network order, 4B)
                 bytes.AddRange(BitConverter.GetBytes(IPAddress.HostToNetworkOrder(metricToSend)));
             }
 
@@ -153,18 +158,34 @@ namespace RouterApp.Core.Routing
             var ifc = _router.GetPort(outPort);
             if (ifc?.Device == null || ifc.Ip == null) return;
 
-            // multicast MAC 224.0.0.9 → 01-00-5E-00-00-09
             var dstMac = PhysicalAddress.Parse("01-00-5E-00-00-09");
             var srcMac = ifc.Device.MacAddress;
 
-            var udp = new UdpPacket(RipUdpPort, RipUdpPort) { PayloadData = ripPayload };
-            var ip = new IPv4Packet(ifc.Ip, dstIp) { TimeToLive = 1, Protocol = ProtocolType.Udp };
-            ip.PayloadPacket = udp;
-            udp.UpdateCalculatedValues();
-            ip.UpdateCalculatedValues();
+            var udp = new UdpPacket(520, 520)
+            {
+                PayloadData = ripPayload
+            };
 
-            var eth = new EthernetPacket(srcMac, dstMac, EthernetType.IPv4) { PayloadPacket = ip };
-            try { ifc.Device.SendPacket(eth.Bytes); } catch { }
+            var ip = new IPv4Packet(ifc.Ip, dstIp)
+            {
+                TimeToLive = 1,
+                Protocol = ProtocolType.Udp,
+                PayloadPacket = udp
+            };
+            
+            udp.UpdateUdpChecksum();
+            ip.UpdateIPChecksum();
+
+            var eth = new EthernetPacket(srcMac, dstMac, EthernetType.IPv4)
+            {
+                PayloadPacket = ip
+            };
+
+            eth.UpdateCalculatedValues();
+
+            try { ifc.Device.SendPacket(eth.Bytes); }
+            catch { }
         }
+
     }
 }

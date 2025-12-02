@@ -18,7 +18,7 @@ namespace RouterApp.Core
                 if (!bit) sawZero = true;
                 else if (sawZero) return false;
             }
-            if (m == 0u || m == 0xFFFFFFFFu) return false;
+            if (m == 0u) return false;
             return true;
         }
 

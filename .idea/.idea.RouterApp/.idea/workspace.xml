@@ -7,7 +7,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="df8d83d6-55d1-4ad3-991c-47c587ec6919" name="Changes" comment="" />
+    <list default="true" id="df8d83d6-55d1-4ad3-991c-47c587ec6919" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/RouterApp/UI/Nat.Designer.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RouterApp/UI/Nat.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.RouterApp/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.RouterApp/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/Core/IpUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/Core/IpUtils.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/Core/Router.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/Core/Router.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/Core/Routing/RipProcess.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/Core/Routing/RipProcess.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/Core/Routing/RouteEntry.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/Core/Routing/RouteEntry.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/Core/Routing/RoutingTable.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/Core/Routing/RoutingTable.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/RouterApp.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/RouterApp.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/UI/Form1.Designer.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/UI/Form1.Designer.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RouterApp/UI/Form1.cs" beforeDir="false" afterPath="$PROJECT_DIR$/RouterApp/UI/Form1.cs" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,11 +28,27 @@
   <component name="DpaMonitoringSettings">
     <option name="firstShow" value="false" />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Michal2684&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Michal2684/RouterApp2.git&quot;,
+    &quot;accountId&quot;: &quot;ada43fbc-1473-4134-8815-6560a807c587&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 0
 }</component>
   <component name="ProjectId" id="34DB4qxnVvjdXSYsiA8tMXr3tCe" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -29,6 +57,8 @@
   &quot;keyToString&quot;: {
     &quot;.NET Project.RouterApp.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -71,6 +101,16 @@
       <workItem from="1760740803166" duration="3386000" />
       <workItem from="1760744752523" duration="296000" />
       <workItem from="1761897234618" duration="562000" />
+      <workItem from="1762247724459" duration="3281000" />
+      <workItem from="1762251642339" duration="52000" />
+      <workItem from="1762251705804" duration="36000" />
+      <workItem from="1762251756672" duration="128000" />
+      <workItem from="1762251904058" duration="276000" />
+      <workItem from="1762252248922" duration="9036000" />
+      <workItem from="1762282016301" duration="278000" />
+      <workItem from="1762943737386" duration="2732000" />
+      <workItem from="1763552641206" duration="1652000" />
+      <workItem from="1764631926089" duration="4778000" />
     </task>
     <servers />
   </component>

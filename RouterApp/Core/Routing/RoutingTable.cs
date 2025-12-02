@@ -26,7 +26,25 @@ namespace RouterApp.Core.Routing
 
         public void Upsert(RouteEntry r)
         {
-            lock (_lock) _map[r.Key] = r;
+            lock (_lock)
+            {
+                if (_map.TryGetValue(r.Key, out var existing))
+                {
+                    if ((existing.LearnedVia == RouteLearnedVia.Static || existing.LearnedVia == RouteLearnedVia.Connected) &&
+                        r.LearnedVia == RouteLearnedVia.RIP)
+                    {
+                        return; 
+                    }
+                    
+                    if (r.AdminDistance > existing.AdminDistance)
+                    {
+                        return;
+                    }
+                    
+                }
+
+                _map[r.Key] = r;
+            }
             OnChanged?.Invoke();
         }
 
@@ -56,13 +74,13 @@ namespace RouterApp.Core.Routing
             };
             Upsert(r);
         }
-
-        // LPM + väzba na AD/metric
+        
         public RouteEntry? Lookup(IPAddress dst)
         {
             RouteEntry? best = null;
             foreach (var r in Snapshot())
             {
+                if (r.Metric >= 16) continue;
                 if (!IpUtils.GetNetworkAddress(dst, r.Mask).Equals(r.Prefix)) continue;
 
                 if (best == null) { best = r; continue; }
@@ -79,8 +97,7 @@ namespace RouterApp.Core.Routing
             }
             return best;
         }
-
-        // Rekurzívne rozlíšenie výstupu a next-hopu (požiadavka učiteľa)
+        
         public (int outPort, IPAddress nextHop)? ResolveNextHop(IPAddress destination)
         {
             const int MAX_DEPTH = 8;
@@ -92,20 +109,17 @@ namespace RouterApp.Core.Routing
                 var r = Lookup(target);
                 if (r == null) return null;
 
-                if (r.NextHop == null) // priamo pripojená
+                if (r.NextHop == null) 
                     return (r.OutPort, destination);
-
-                // má next-hop → pokračuj k nemu
+                
                 target = r.NextHop;
-                // ak ďalší lookup povie „direct“, použijeme jeho OutPort a ARP na ten nextHop
                 var nhRoute = Lookup(target);
                 if (nhRoute != null && nhRoute.NextHop == null)
                     return (nhRoute.OutPort, target);
             }
             return null;
         }
-
-        // RIP starnutie (Invalid/Holddown/Flush)
+        
         public void RipAgingSweep(TimeSpan invalid, TimeSpan holddown, TimeSpan flush)
         {
             var now = DateTime.UtcNow;
@@ -116,12 +130,12 @@ namespace RouterApp.Core.Routing
                 foreach (var r in _map.Values.ToList())
                 {
                     if (r.LearnedVia != RouteLearnedVia.RIP) continue;
-
-                    var age = now - r.LastUpdateUtc;
+                    var ageAnchor = r.InvalidSinceUtc ?? r.LastUpdateUtc;
+                    var age = now - ageAnchor;
 
                     if (age >= invalid && r.InvalidSinceUtc == null)
                     {
-                        r.Metric = 16;                       // mark invalid
+                        r.Metric = 16;                      
                         r.InvalidSinceUtc = now;
                         r.HoldDownUntilUtc = now.Add(holddown);
                         r.FlushDueUtc     = now.Add(flush);

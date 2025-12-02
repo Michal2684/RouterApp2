@@ -5,6 +5,7 @@ using SharpPcap;
 using Timer = System.Windows.Forms.Timer;
 using SharpPcap.LibPcap; // Add this for LibPcapLiveDevice
 using RouterApp.Core;     
+using RouterApp.Core.Routing;
 namespace RouterApp
 {
     public partial class Form1 : Form
@@ -12,16 +13,15 @@ namespace RouterApp
         private readonly CustomeRouter _switch = new();
         private readonly Timer arpTimer = new Timer { Interval = 1000 };
         private bool _initUi = true; 
+        private int _strtOutPort = 0;
         public Form1()
         {
             InitializeComponent();
             LoadAvailableInterfaces();
-
-            // ARP grid refresh
+            
             arpTimer.Tick += (_, __) => RefreshArpGrid();
             _switch.Arp.OnChanged += () => this.BeginInvoke(new Action(RefreshArpGrid));
-
-            // ROUTES grid refresh na zmenu tabuľky
+            
             _switch.Rt.OnChanged += () => this.BeginInvoke(new Action(RefreshRoutesGrid));
 
             btnStop.Enabled = false;
@@ -31,18 +31,15 @@ namespace RouterApp
 
             numArpTimeout.ValueChanged += numArpTimeout_ValueChanged;
             numArpTimeout.Value = 60;
-
-            // Inicializuj UI stav pre RIP (ak máš defaulty iné, uprav)
+            
             checkRip.Checked = _switch.Rip.Port1Enabled;
             checkRip2.Checked = _switch.Rip.Port2Enabled;
             
-// až potom nastav hodnoty z RIP procesu
-            numRipUpdate.Value   = (decimal)_switch.Rip.UpdateTimer.TotalSeconds;   // 30
-            numRipInvalid.Value  = (decimal)_switch.Rip.InvalidTimer.TotalSeconds;  // 180
-            numRipHoldDown.Value = (decimal)_switch.Rip.HoldDownTimer.TotalSeconds; // 180
-            numRipFlush.Value    = (decimal)_switch.Rip.FlushTimer.TotalSeconds;    // 240
-
-            // Prilep eventy (ak si ich nemal pripojené v Designer-i)
+            numRipUpdate.Value   = (decimal)_switch.Rip.UpdateTimer.TotalSeconds;   
+            numRipInvalid.Value  = (decimal)_switch.Rip.InvalidTimer.TotalSeconds;  
+            numRipHoldDown.Value = (decimal)_switch.Rip.HoldDownTimer.TotalSeconds; 
+            numRipFlush.Value    = (decimal)_switch.Rip.FlushTimer.TotalSeconds;    
+            
             checkRip.CheckedChanged   += checkRip_CheckedChanged;
             checkRip2.CheckedChanged  += checkRip2_CheckedChanged;
             numRipUpdate.ValueChanged += numRipUpdate_ValueChanged;
@@ -232,8 +229,7 @@ namespace RouterApp
         {
             if (_initUi) return;
             _switch.Rip.Port1Enabled = checkRip.Checked;
-
-            // ak je router už spustený a RIP na porte sa zapol, pošli Request
+            
             if (_switch.IsRunning && checkRip.Checked)
                 _switch.Rip.SendRequest(1);
         }
@@ -286,13 +282,12 @@ namespace RouterApp
                     AgeSec = (int)(DateTime.UtcNow - r.LastUpdateUtc).TotalSeconds
                 }).ToList();
 
-                dgvRoute.AutoGenerateColumns = true;  // alebo si nastav vlastné stĺpce
+                dgvRoute.AutoGenerateColumns = true;  
                 dgvRoute.DataSource = rows;
             }
             catch { /* ignore UI errors */ }
         }
-
-// pomocník na zobrazenie CIDR
+        
         private static int MaskToCidr(System.Net.IPAddress mask)
         {
             var b = mask.GetAddressBytes();
@@ -305,5 +300,136 @@ namespace RouterApp
             return c;
         }
 
+        private void rdbtn_int1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdbtn_int1.Checked) _strtOutPort = 1;
+        }
+
+        private void rdbtn_int2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdbtn_int2.Checked) _strtOutPort = 2;
+        }
+
+        private void rdbtn_none_CheckedChanged(object sender, EventArgs e)
+        {
+            if (rdbtn_none.Checked) _strtOutPort = 0;
+        }
+
+        private void stroute_add_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            if (!System.Net.IPAddress.TryParse(txt_strt_ip.Text.Trim(), out var ip))
+                throw new Exception("Invalid IP.");
+            if (!System.Net.IPAddress.TryParse(txt_strt_mask.Text.Trim(), out var mask))
+                throw new Exception("Invalid mask.");
+            if (!RouterApp.Core.IpUtils.IsContiguousMask(mask))
+                throw new Exception("Mask must be contiguous.");
+
+            System.Net.IPAddress? nextHop = null;
+            var nhText = txt_strt_nh.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(nhText))
+            {
+                if (!System.Net.IPAddress.TryParse(nhText, out var nhParsed))
+                    throw new Exception("Invalid next-hop IP.");
+                nextHop = nhParsed;
+            }
+
+            if (!int.TryParse(txt_strt_ad.Text.Trim(), out var ad) || ad < 1 || ad > 255)
+                throw new Exception("AD must be 1–255.");
+            
+            if (nextHop is null && _strtOutPort == 0)
+                throw new Exception("Specify Next Hop, Out Interface, or both.");
+            
+            var network = RouterApp.Core.IpUtils.GetNetworkAddress(ip, mask);
+
+            var entry = new RouterApp.Core.Routing.RouteEntry
+            {
+                Prefix = network,
+                Mask = mask,
+                NextHop = nextHop,                 
+                OutPort = _strtOutPort,            
+                Metric = 1,                        
+                AdminDistance = ad,
+                LearnedVia = RouteLearnedVia.Static,
+                LastUpdateUtc = DateTime.UtcNow
+            };
+
+            _switch.Rt.Upsert(entry);
+            
+            txt_strt_ip.Clear();
+            txt_strt_mask.Clear();
+            txt_strt_nh.Clear();
+            rdbtn_none.Checked = true;            
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Static Route", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+
+
+
+        private void btn_dlt_strt_Click(object sender, EventArgs e)
+    {
+        try
+        {
+            if (dgvRoute.CurrentRow == null)
+            {
+                MessageBox.Show("Select a route first.", "Routes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var via = dgvRoute.CurrentRow.Cells["Via"]?.Value?.ToString();
+            if (!string.Equals(via, "Static", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("Only Static routes can be removed here.", "Routes");
+                return;
+            }
+
+            var dest = dgvRoute.CurrentRow.Cells["Destination"]?.Value?.ToString(); 
+            var maskStr = dgvRoute.CurrentRow.Cells["Mask"]?.Value?.ToString();
+            var nextHopStr = dgvRoute.CurrentRow.Cells["NextHop"]?.Value?.ToString() ?? "-";
+            var outPortStr = dgvRoute.CurrentRow.Cells["OutPort"]?.Value?.ToString() ?? "-";
+
+            if (string.IsNullOrWhiteSpace(dest) || string.IsNullOrWhiteSpace(maskStr))
+                throw new Exception("Could not read selected route.");
+
+            var parts = dest.Split('/');
+            if (parts.Length != 2) throw new Exception("Destination format unexpected.");
+
+            if (!System.Net.IPAddress.TryParse(parts[0], out var prefix))
+                throw new Exception("Invalid prefix in selection.");
+            if (!System.Net.IPAddress.TryParse(maskStr, out var mask))
+                throw new Exception("Invalid mask in selection.");
+            
+            var network = RouterApp.Core.IpUtils.GetNetworkAddress(prefix, mask);
+
+            System.Net.IPAddress? nextHop = null;
+            if (!string.Equals(nextHopStr, "-", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(nextHopStr))
+            {
+                if (!System.Net.IPAddress.TryParse(nextHopStr, out var nhParsed))
+                    throw new Exception("Invalid next-hop in selection.");
+                nextHop = nhParsed;
+            }
+
+            int outPort = 0;
+            if (!string.Equals(outPortStr, "-", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrWhiteSpace(outPortStr))
+                int.TryParse(outPortStr, out outPort);
+
+            string key = $"{network}/{mask}-{(nextHop?.ToString() ?? "direct")}-{outPort}";
+
+            _switch.Rt.RemoveWhere(r => r.LearnedVia == RouteLearnedVia.Static && r.Key == key);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Delete Static Route", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+
+
+        
     }
 }

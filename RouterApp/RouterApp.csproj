@@ -18,6 +18,9 @@
       <Compile Update="UI\Form1.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="UI\Nat.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

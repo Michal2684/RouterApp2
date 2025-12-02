@@ -62,6 +62,36 @@ partial class Form1
         numRipFlush = new System.Windows.Forms.NumericUpDown();
         checkRip = new System.Windows.Forms.CheckBox();
         checkRip2 = new System.Windows.Forms.CheckBox();
+        txt_strt_ip = new System.Windows.Forms.TextBox();
+        label8 = new System.Windows.Forms.Label();
+        txt_strt_mask = new System.Windows.Forms.TextBox();
+        label9 = new System.Windows.Forms.Label();
+        txt_strt_nh = new System.Windows.Forms.TextBox();
+        label10 = new System.Windows.Forms.Label();
+        txt_strt_ad = new System.Windows.Forms.TextBox();
+        label11 = new System.Windows.Forms.Label();
+        label12 = new System.Windows.Forms.Label();
+        rdbtn_int1 = new System.Windows.Forms.RadioButton();
+        rdbtn_int2 = new System.Windows.Forms.RadioButton();
+        stroute_add = new System.Windows.Forms.Button();
+        btn_dlt_strt = new System.Windows.Forms.Button();
+        rdbtn_none = new System.Windows.Forms.RadioButton();
+        RipUpdate = new System.Windows.Forms.Label();
+        label13 = new System.Windows.Forms.Label();
+        label14 = new System.Windows.Forms.Label();
+        label15 = new System.Windows.Forms.Label();
+        label16 = new System.Windows.Forms.Label();
+        labelNat = new System.Windows.Forms.Label();
+        labelNatTimer = new System.Windows.Forms.Label();
+        numNatTimer = new System.Windows.Forms.NumericUpDown();
+        btnNatShow = new System.Windows.Forms.Button();
+        labelNatRange = new System.Windows.Forms.Label();
+        labelNatNetwork = new System.Windows.Forms.Label();
+        txtNatNetwork = new System.Windows.Forms.TextBox();
+        labelNatMask = new System.Windows.Forms.Label();
+        txtNatMask = new System.Windows.Forms.TextBox();
+        btnNatRangeSet = new System.Windows.Forms.Button();
+        btnNatRangeClear = new System.Windows.Forms.Button();
         ((System.ComponentModel.ISupportInitialize)dgvArp).BeginInit();
         ((System.ComponentModel.ISupportInitialize)errorProvider1).BeginInit();
         ((System.ComponentModel.ISupportInitialize)numArpTimeout).BeginInit();
@@ -70,6 +100,7 @@ partial class Form1
         ((System.ComponentModel.ISupportInitialize)numRipInvalid).BeginInit();
         ((System.ComponentModel.ISupportInitialize)numRipHoldDown).BeginInit();
         ((System.ComponentModel.ISupportInitialize)numRipFlush).BeginInit();
+        ((System.ComponentModel.ISupportInitialize)numNatTimer).BeginInit();
         SuspendLayout();
         // 
         // label1
@@ -349,11 +380,291 @@ partial class Form1
         checkRip2.UseVisualStyleBackColor = true;
         checkRip2.CheckedChanged += checkRip2_CheckedChanged;
         // 
+        // txt_strt_ip
+        // 
+        txt_strt_ip.Location = new System.Drawing.Point(139, 319);
+        txt_strt_ip.Name = "txt_strt_ip";
+        txt_strt_ip.Size = new System.Drawing.Size(175, 31);
+        txt_strt_ip.TabIndex = 32;
+        // 
+        // label8
+        // 
+        label8.Location = new System.Drawing.Point(99, 319);
+        label8.Name = "label8";
+        label8.Size = new System.Drawing.Size(34, 31);
+        label8.TabIndex = 33;
+        label8.Text = "IP";
+        // 
+        // txt_strt_mask
+        // 
+        txt_strt_mask.Location = new System.Drawing.Point(139, 356);
+        txt_strt_mask.Name = "txt_strt_mask";
+        txt_strt_mask.Size = new System.Drawing.Size(175, 31);
+        txt_strt_mask.TabIndex = 34;
+        // 
+        // label9
+        // 
+        label9.Location = new System.Drawing.Point(73, 356);
+        label9.Name = "label9";
+        label9.Size = new System.Drawing.Size(60, 31);
+        label9.TabIndex = 35;
+        label9.Text = "MASK";
+        // 
+        // txt_strt_nh
+        // 
+        txt_strt_nh.Location = new System.Drawing.Point(139, 393);
+        txt_strt_nh.Name = "txt_strt_nh";
+        txt_strt_nh.Size = new System.Drawing.Size(175, 31);
+        txt_strt_nh.TabIndex = 36;
+        // 
+        // label10
+        // 
+        label10.Location = new System.Drawing.Point(35, 393);
+        label10.Name = "label10";
+        label10.Size = new System.Drawing.Size(98, 31);
+        label10.TabIndex = 37;
+        label10.Text = "NEXT HOP";
+        // 
+        // txt_strt_ad
+        // 
+        txt_strt_ad.Location = new System.Drawing.Point(139, 430);
+        txt_strt_ad.Name = "txt_strt_ad";
+        txt_strt_ad.Size = new System.Drawing.Size(175, 31);
+        txt_strt_ad.TabIndex = 38;
+        // 
+        // label11
+        // 
+        label11.Location = new System.Drawing.Point(85, 430);
+        label11.Name = "label11";
+        label11.Size = new System.Drawing.Size(48, 31);
+        label11.TabIndex = 39;
+        label11.Text = "AD";
+        // 
+        // label12
+        // 
+        label12.Location = new System.Drawing.Point(4, 488);
+        label12.Name = "label12";
+        label12.Size = new System.Drawing.Size(139, 31);
+        label12.TabIndex = 40;
+        label12.Text = "OUT INTERFACE";
+        // 
+        // rdbtn_int1
+        // 
+        rdbtn_int1.Location = new System.Drawing.Point(19, 522);
+        rdbtn_int1.Name = "rdbtn_int1";
+        rdbtn_int1.Size = new System.Drawing.Size(114, 24);
+        rdbtn_int1.TabIndex = 41;
+        rdbtn_int1.TabStop = true;
+        rdbtn_int1.Text = "interface1";
+        rdbtn_int1.UseVisualStyleBackColor = true;
+        rdbtn_int1.CheckedChanged += rdbtn_int1_CheckedChanged;
+        // 
+        // rdbtn_int2
+        // 
+        rdbtn_int2.Location = new System.Drawing.Point(19, 552);
+        rdbtn_int2.Name = "rdbtn_int2";
+        rdbtn_int2.Size = new System.Drawing.Size(114, 24);
+        rdbtn_int2.TabIndex = 42;
+        rdbtn_int2.TabStop = true;
+        rdbtn_int2.Text = "interface2";
+        rdbtn_int2.UseVisualStyleBackColor = true;
+        rdbtn_int2.CheckedChanged += rdbtn_int2_CheckedChanged;
+        // 
+        // stroute_add
+        // 
+        stroute_add.Location = new System.Drawing.Point(160, 508);
+        stroute_add.Name = "stroute_add";
+        stroute_add.Size = new System.Drawing.Size(101, 38);
+        stroute_add.TabIndex = 43;
+        stroute_add.Text = "ADD";
+        stroute_add.UseVisualStyleBackColor = true;
+        stroute_add.Click += stroute_add_Click;
+        // 
+        // btn_dlt_strt
+        // 
+        btn_dlt_strt.Location = new System.Drawing.Point(1281, 971);
+        btn_dlt_strt.Name = "btn_dlt_strt";
+        btn_dlt_strt.Size = new System.Drawing.Size(87, 41);
+        btn_dlt_strt.TabIndex = 44;
+        btn_dlt_strt.Text = "DELETE";
+        btn_dlt_strt.UseVisualStyleBackColor = true;
+        btn_dlt_strt.Click += btn_dlt_strt_Click;
+        // 
+        // rdbtn_none
+        // 
+        rdbtn_none.Location = new System.Drawing.Point(19, 582);
+        rdbtn_none.Name = "rdbtn_none";
+        rdbtn_none.Size = new System.Drawing.Size(114, 24);
+        rdbtn_none.TabIndex = 45;
+        rdbtn_none.TabStop = true;
+        rdbtn_none.Text = "none";
+        rdbtn_none.UseVisualStyleBackColor = true;
+        rdbtn_none.CheckedChanged += rdbtn_none_CheckedChanged;
+        // 
+        // RipUpdate
+        // 
+        RipUpdate.Location = new System.Drawing.Point(368, 971);
+        RipUpdate.Name = "RipUpdate";
+        RipUpdate.Size = new System.Drawing.Size(98, 35);
+        RipUpdate.TabIndex = 46;
+        RipUpdate.Text = "RipUpdate";
+        // 
+        // label13
+        // 
+        label13.Location = new System.Drawing.Point(582, 971);
+        label13.Name = "label13";
+        label13.Size = new System.Drawing.Size(98, 35);
+        label13.TabIndex = 47;
+        label13.Text = "RipInvalid";
+        // 
+        // label14
+        // 
+        label14.Location = new System.Drawing.Point(771, 971);
+        label14.Name = "label14";
+        label14.Size = new System.Drawing.Size(132, 35);
+        label14.TabIndex = 48;
+        label14.Text = "RipHoldDown";
+        // 
+        // label15
+        // 
+        label15.Location = new System.Drawing.Point(1033, 971);
+        label15.Name = "label15";
+        label15.Size = new System.Drawing.Size(89, 35);
+        label15.TabIndex = 49;
+        label15.Text = "RipFlush";
+        // 
+        // label16
+        // 
+        label16.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)238));
+        label16.Location = new System.Drawing.Point(668, 542);
+        label16.Name = "label16";
+        label16.Size = new System.Drawing.Size(211, 34);
+        label16.TabIndex = 50;
+        label16.Text = "Route Table";
+        // 
+        // labelNat
+        // 
+        labelNat.Location = new System.Drawing.Point(1264, 289);
+        labelNat.Name = "labelNat";
+        labelNat.Size = new System.Drawing.Size(62, 44);
+        labelNat.TabIndex = 51;
+        labelNat.Text = "NAT";
+        // 
+        // labelNatTimer
+        // 
+        labelNatTimer.Location = new System.Drawing.Point(1233, 349);
+        labelNatTimer.Name = "labelNatTimer";
+        labelNatTimer.Size = new System.Drawing.Size(59, 29);
+        labelNatTimer.TabIndex = 52;
+        labelNatTimer.Text = "Timer";
+        // 
+        // numNatTimer
+        // 
+        numNatTimer.Location = new System.Drawing.Point(1295, 347);
+        numNatTimer.Name = "numNatTimer";
+        numNatTimer.Size = new System.Drawing.Size(73, 31);
+        numNatTimer.TabIndex = 53;
+        // 
+        // btnNatShow
+        // 
+        btnNatShow.Location = new System.Drawing.Point(1259, 403);
+        btnNatShow.Name = "btnNatShow";
+        btnNatShow.Size = new System.Drawing.Size(109, 36);
+        btnNatShow.TabIndex = 54;
+        btnNatShow.Text = "Show NAT";
+        btnNatShow.UseVisualStyleBackColor = true;
+        // 
+        // labelNatRange
+        // 
+        labelNatRange.Location = new System.Drawing.Point(1450, 289);
+        labelNatRange.Name = "labelNatRange";
+        labelNatRange.Size = new System.Drawing.Size(118, 27);
+        labelNatRange.TabIndex = 55;
+        labelNatRange.Text = "RANGE";
+        // 
+        // labelNatNetwork
+        // 
+        labelNatNetwork.Location = new System.Drawing.Point(1394, 348);
+        labelNatNetwork.Name = "labelNatNetwork";
+        labelNatNetwork.Size = new System.Drawing.Size(99, 27);
+        labelNatNetwork.TabIndex = 56;
+        labelNatNetwork.Text = "Network IP";
+        // 
+        // txtNatNetwork
+        // 
+        txtNatNetwork.Location = new System.Drawing.Point(1499, 344);
+        txtNatNetwork.Name = "txtNatNetwork";
+        txtNatNetwork.Size = new System.Drawing.Size(176, 31);
+        txtNatNetwork.TabIndex = 58;
+        // 
+        // labelNatMask
+        // 
+        labelNatMask.Location = new System.Drawing.Point(1394, 385);
+        labelNatMask.Name = "labelNatMask";
+        labelNatMask.Size = new System.Drawing.Size(99, 27);
+        labelNatMask.TabIndex = 59;
+        labelNatMask.Text = "Mask";
+        // 
+        // txtNatMask
+        // 
+        txtNatMask.Location = new System.Drawing.Point(1499, 381);
+        txtNatMask.Name = "txtNatMask";
+        txtNatMask.Size = new System.Drawing.Size(176, 31);
+        txtNatMask.TabIndex = 60;
+        // 
+        // btnNatRangeSet
+        // 
+        btnNatRangeSet.Location = new System.Drawing.Point(1432, 457);
+        btnNatRangeSet.Name = "btnNatRangeSet";
+        btnNatRangeSet.Size = new System.Drawing.Size(75, 33);
+        btnNatRangeSet.TabIndex = 61;
+        btnNatRangeSet.Text = "Set";
+        btnNatRangeSet.UseVisualStyleBackColor = true;
+        // 
+        // btnNatRangeClear
+        // 
+        btnNatRangeClear.Location = new System.Drawing.Point(1586, 457);
+        btnNatRangeClear.Name = "btnNatRangeClear";
+        btnNatRangeClear.Size = new System.Drawing.Size(75, 33);
+        btnNatRangeClear.TabIndex = 62;
+        btnNatRangeClear.Text = "Clear";
+        btnNatRangeClear.UseVisualStyleBackColor = true;
+        // 
         // Form1
         // 
         AutoScaleDimensions = new System.Drawing.SizeF(10F, 25F);
         AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
         ClientSize = new System.Drawing.Size(1725, 1119);
+        Controls.Add(btnNatRangeClear);
+        Controls.Add(btnNatRangeSet);
+        Controls.Add(txtNatMask);
+        Controls.Add(labelNatMask);
+        Controls.Add(txtNatNetwork);
+        Controls.Add(labelNatNetwork);
+        Controls.Add(labelNatRange);
+        Controls.Add(btnNatShow);
+        Controls.Add(numNatTimer);
+        Controls.Add(labelNatTimer);
+        Controls.Add(labelNat);
+        Controls.Add(label16);
+        Controls.Add(label15);
+        Controls.Add(label14);
+        Controls.Add(label13);
+        Controls.Add(RipUpdate);
+        Controls.Add(rdbtn_none);
+        Controls.Add(btn_dlt_strt);
+        Controls.Add(stroute_add);
+        Controls.Add(rdbtn_int2);
+        Controls.Add(rdbtn_int1);
+        Controls.Add(label12);
+        Controls.Add(label11);
+        Controls.Add(txt_strt_ad);
+        Controls.Add(label10);
+        Controls.Add(txt_strt_nh);
+        Controls.Add(label9);
+        Controls.Add(txt_strt_mask);
+        Controls.Add(label8);
+        Controls.Add(txt_strt_ip);
         Controls.Add(checkRip2);
         Controls.Add(checkRip);
         Controls.Add(numRipFlush);
@@ -394,9 +705,57 @@ partial class Form1
         ((System.ComponentModel.ISupportInitialize)numRipInvalid).EndInit();
         ((System.ComponentModel.ISupportInitialize)numRipHoldDown).EndInit();
         ((System.ComponentModel.ISupportInitialize)numRipFlush).EndInit();
+        ((System.ComponentModel.ISupportInitialize)numNatTimer).EndInit();
         ResumeLayout(false);
         PerformLayout();
     }
+
+    private System.Windows.Forms.Button btnNatRangeSet;
+    private System.Windows.Forms.Button btnNatRangeClear;
+
+    private System.Windows.Forms.Label labelNatMask;
+    private System.Windows.Forms.TextBox txtNatMask;
+
+    private System.Windows.Forms.TextBox txtNatNetwork;
+
+    private System.Windows.Forms.Label labelNatNetwork;
+
+    private System.Windows.Forms.Label labelNatRange;
+
+    private System.Windows.Forms.Button btnNatShow;
+
+    private System.Windows.Forms.NumericUpDown numNatTimer;
+
+    private System.Windows.Forms.Label labelNatTimer;
+
+    private System.Windows.Forms.Label labelNat;
+
+    private System.Windows.Forms.Label RipUpdate;
+    private System.Windows.Forms.Label label13;
+    private System.Windows.Forms.Label label14;
+    private System.Windows.Forms.Label label15;
+    private System.Windows.Forms.Label label16;
+
+    private System.Windows.Forms.RadioButton rdbtn_none;
+
+    private System.Windows.Forms.Button stroute_add;
+    private System.Windows.Forms.Button btn_dlt_strt;
+
+    private System.Windows.Forms.Label label12;
+    private System.Windows.Forms.RadioButton rdbtn_int1;
+    private System.Windows.Forms.RadioButton rdbtn_int2;
+
+    private System.Windows.Forms.TextBox txt_strt_ad;
+    private System.Windows.Forms.Label label11;
+
+    private System.Windows.Forms.TextBox txt_strt_nh;
+    private System.Windows.Forms.Label label10;
+
+    private System.Windows.Forms.TextBox txt_strt_mask;
+    private System.Windows.Forms.Label label9;
+
+    private System.Windows.Forms.TextBox txt_strt_ip;
+    private System.Windows.Forms.Label label8;
 
     private System.Windows.Forms.NumericUpDown numRipHoldDown;
 
