@@ -15,10 +15,10 @@ namespace RouterApp.Core.Routing
         private readonly System.Timers.Timer _tick = new(1000);
         private readonly Dictionary<int, DateTime> _nextUpdateAt = new();
         
-        public TimeSpan UpdateTimer  { get; set; } = TimeSpan.FromSeconds(30);
+        public TimeSpan UpdateTimer { get; set; } = TimeSpan.FromSeconds(30);
         public TimeSpan InvalidTimer { get; set; } = TimeSpan.FromSeconds(180);
-        public TimeSpan HoldDownTimer{ get; set; } = TimeSpan.FromSeconds(180);
-        public TimeSpan FlushTimer   { get; set; } = TimeSpan.FromSeconds(240);
+        public TimeSpan HoldDownTimer { get; set; } = TimeSpan.FromSeconds(180);
+        public TimeSpan FlushTimer { get; set; } = TimeSpan.FromSeconds(240);
 
         public bool Port1Enabled { get; set; } = true;
         public bool Port2Enabled { get; set; } = true;
@@ -72,7 +72,7 @@ namespace RouterApp.Core.Routing
                 if (afi != 2) continue;
 
                 var prefix = new IPAddress(new byte[] { p[i + 4], p[i + 5], p[i + 6], p[i + 7] });
-                var mask   = new IPAddress(new byte[] { p[i + 8], p[i + 9], p[i + 10], p[i + 11] });
+                var mask = new IPAddress(new byte[] { p[i + 8], p[i + 9], p[i + 10], p[i + 11] });
                 int metric = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(p, i + 16));
                 if (!IpUtils.IsContiguousMask(mask)) continue;
 
@@ -100,7 +100,7 @@ namespace RouterApp.Core.Routing
 
                     entry.InvalidSinceUtc = entry.InvalidSinceUtc ?? DateTime.UtcNow;
                     entry.HoldDownUntilUtc = DateTime.UtcNow.Add(HoldDownTimer);
-                    entry.FlushDueUtc      = DateTime.UtcNow.Add(FlushTimer);
+                    entry.FlushDueUtc = DateTime.UtcNow.Add(FlushTimer);
                     
                     _router.Rt.Upsert(entry);
                     return;
