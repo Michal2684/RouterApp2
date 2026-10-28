@@ -137,7 +137,7 @@ namespace RouterApp.Core
                 ip.UpdateCalculatedValues();
                 outEth.UpdateCalculatedValues();
 
-                try { outDev.SendPacket(outEth.Bytes); } catch { /* log/ignore */ }
+                try { outDev.SendPacket(outEth.Bytes); } catch { /* ignore */ }
 
                 return;
             }
