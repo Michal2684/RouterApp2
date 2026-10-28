@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using SharpPcap;
 using Timer = System.Windows.Forms.Timer;
-using SharpPcap.LibPcap; // Add this for LibPcapLiveDevice
+using SharpPcap.LibPcap;
 using RouterApp.Core;     
 using RouterApp.Core.Routing;
 namespace RouterApp
